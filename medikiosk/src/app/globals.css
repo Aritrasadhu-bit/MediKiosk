@@ -1,0 +1,764 @@
+@import "tailwindcss";
+
+/* ------------------------------------------------------------------
+   Design tokens
+
+   One restrained palette built around a clinical blue. Neutrals carry
+   the interface; colour is reserved for state (status, severity,
+   consent) so it keeps meaning instead of decorating.
+   ------------------------------------------------------------------ */
+:root {
+  --surface: #ffffff;
+  --surface-sunken: #f6f7f9;
+  --surface-raised: #ffffff;
+  --canvas: #eef1f6;
+
+  --border: #e3e6ea;
+  --border-strong: #cfd4da;
+  --border-focus: #1d4ed8;
+
+  --text: #12161c;
+  --text-secondary: #3f4753;
+  --text-muted: #4a5260;
+  --text-inverse: #ffffff;
+
+  /* Govt. of India accents — restrained, official use only */
+  --saffron: #ff9933;
+  --india-green: #138808;
+  --navy: #0b3d91;
+
+  --brand: #1d4ed8;
+  --brand-hover: #1a41b8;
+  --brand-subtle: #eef2ff;
+  --brand-border: #c7d2fe;
+
+  --critical: #b42318;
+  --critical-subtle: #fef3f2;
+  --critical-border: #fecdca;
+
+  --warning: #b54708;
+  --warning-subtle: #fffaeb;
+  --warning-border: #fedf89;
+
+  --success: #067647;
+  --success-subtle: #ecfdf3;
+  --success-border: #abefc6;
+
+  --info: #175cd3;
+  --info-subtle: #eff8ff;
+  --info-border: #b2ddff;
+
+  --radius-sm: 4px;
+  --radius: 6px;
+  --radius-lg: 8px;
+  --radius-xl: 12px;
+
+  --shadow-sm: 0 1px 2px rgb(16 24 40 / 0.05);
+  --shadow: 0 1px 3px rgb(16 24 40 / 0.1), 0 1px 2px rgb(16 24 40 / 0.06);
+  --shadow-lg: 0 12px 24px -6px rgb(16 24 40 / 0.12), 0 4px 8px -4px rgb(16 24 40 / 0.06);
+
+  --header-height: 56px;
+
+  --font-sans: var(--font-sans-stack);
+  --font-mono: var(--font-mono-stack);
+  /* Hindi text renders in Noto Devanagari, Punjabi in Noto Gurmukhi, Latin in Inter. */
+  --font-ui: var(--font-sans-stack), var(--font-deva-stack), var(--font-guru-stack), ui-sans-serif, system-ui, sans-serif;
+
+  --background: var(--canvas);
+  --foreground: var(--text);
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+
+  --color-surface: var(--surface);
+  --color-sunken: var(--surface-sunken);
+  --color-canvas: var(--canvas);
+  --color-line: var(--border);
+  --color-line-strong: var(--border-strong);
+
+  --color-ink: var(--text);
+  --color-ink-2: var(--text-secondary);
+  --color-ink-3: var(--text-muted);
+
+  --color-brand: var(--brand);
+  --color-brand-subtle: var(--brand-subtle);
+  --color-brand-border: var(--brand-border);
+
+  --color-critical: var(--critical);
+  --color-critical-subtle: var(--critical-subtle);
+  --color-critical-border: var(--critical-border);
+
+  --color-warning: var(--warning);
+  --color-warning-subtle: var(--warning-subtle);
+  --color-warning-border: var(--warning-border);
+
+  --color-success: var(--success);
+  --color-success-subtle: var(--success-subtle);
+  --color-success-border: var(--success-border);
+
+  --color-info: var(--info);
+  --color-info-subtle: var(--info-subtle);
+  --color-info-border: var(--info-border);
+
+  --color-brand-hover: var(--brand-hover);
+
+  --font-sans: var(--font-ui);
+  --font-mono: var(--font-mono-stack);
+
+  --radius-sm: 4px;
+  --radius: 6px;
+  --radius-lg: 8px;
+  --radius-xl: 12px;
+}
+
+/* ------------------------------------------------------------------ Base */
+* {
+  border-color: var(--border);
+}
+
+html {
+  -webkit-text-size-adjust: 100%;
+}
+
+body {
+  background: var(--canvas);
+  color: var(--text);
+  font-family: var(--font-ui);
+  font-feature-settings: "cv02", "cv03", "cv04", "cv11";
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+/* Tabular figures keep queue times, vitals and token numbers from
+   shifting width as they tick. */
+.tabular {
+  font-variant-numeric: tabular-nums;
+}
+
+h1,
+h2,
+h3,
+h4 {
+  letter-spacing: -0.011em;
+  text-wrap: balance;
+}
+
+p {
+  text-wrap: pretty;
+}
+
+/* A single visible focus treatment across the whole product. */
+:where(a, button, input, select, textarea, [tabindex]):focus-visible {
+  outline: 3px solid #000000;
+  outline-offset: 3px;
+  border-radius: var(--radius-sm);
+  box-shadow: 0 0 0 5px rgb(29 78 216 / 0.25);
+}
+
+::selection {
+  background: #dbe4ff;
+  color: #0b1b4d;
+}
+
+/* ------------------------------------------------------------------ Primitives
+   Shared component classes. Pages use these instead of hand-rolling the
+   same card/button/label markup, which is what made every screen look
+   like the same generated template.
+   ------------------------------------------------------------------ */
+
+/* Panels: flat, hairline-bordered, minimal elevation. */
+.panel {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-sm);
+}
+
+.panel-flush {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+}
+
+.panel-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  padding: 0.75rem 1rem;
+  border-bottom: 1px solid var(--border);
+  background: var(--surface-sunken);
+}
+
+.panel-title {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--text);
+}
+
+.panel-body {
+  padding: 1rem;
+}
+
+.section-label {
+  font-size: 0.6875rem;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+}
+
+/* Buttons */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  border-radius: var(--radius);
+  border: 1px solid transparent;
+  font-size: 0.875rem;
+  font-weight: 500;
+  line-height: 1.25rem;
+  padding: 0.5rem 0.875rem;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: background-color 120ms ease, border-color 120ms ease, color 120ms ease;
+}
+
+.btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.btn-primary {
+  background: var(--brand);
+  color: #fff;
+}
+.btn-primary:hover:not(:disabled) {
+  background: var(--brand-hover);
+}
+
+.btn-secondary {
+  background: var(--surface);
+  border-color: var(--border-strong);
+  color: var(--text);
+  box-shadow: var(--shadow-sm);
+}
+.btn-secondary:hover:not(:disabled) {
+  background: var(--surface-sunken);
+}
+
+.btn-ghost {
+  background: transparent;
+  color: var(--text-secondary);
+}
+.btn-ghost:hover:not(:disabled) {
+  background: var(--surface-sunken);
+  color: var(--text);
+}
+
+.btn-danger {
+  background: var(--critical);
+  color: #fff;
+}
+.btn-danger:hover:not(:disabled) {
+  background: #9a1c12;
+}
+
+.btn-warning {
+  background: var(--warning);
+  color: #fff;
+}
+.btn-warning:hover:not(:disabled) {
+  background: #b45309;
+}
+
+.btn-dark {
+  background: var(--text);
+  color: var(--surface);
+}
+.btn-dark:hover:not(:disabled) {
+  background: #1f2733;
+}
+
+/* Square icon-only button used for dismiss/remove affordances.
+   44px minimum: kiosk touch target (WCAG 2.5.8 / GIGW). */
+.icon-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 2.75rem;
+  min-height: 2.75rem;
+  width: 2.75rem;
+  height: 2.75rem;
+  border-radius: var(--radius-sm);
+  color: var(--text-muted);
+  transition: background-color 120ms ease, color 120ms ease;
+}
+.icon-btn:hover {
+  background: var(--surface-sunken);
+  color: var(--text);
+}
+
+/* Neutral, non-blocking loading indicator. */
+.spinner {
+  display: inline-block;
+  width: 1.75rem;
+  height: 1.75rem;
+  border-radius: 999px;
+  border: 2px solid var(--border-strong);
+  border-top-color: var(--brand);
+  animation: spin 0.7s linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.btn-sm {
+  font-size: 0.8125rem;
+  padding: 0.3125rem 0.625rem;
+}
+
+.btn-lg {
+  font-size: 1rem;
+  padding: 0.75rem 1.25rem;
+}
+
+/* Form controls */
+.field {
+  display: block;
+  width: 100%;
+  background: var(--surface);
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius);
+  padding: 0.5rem 0.75rem;
+  font-size: 0.875rem;
+  color: var(--text);
+  box-shadow: var(--shadow-sm);
+}
+.field::placeholder {
+  color: #9aa2ad;
+}
+.field:focus {
+  outline: none;
+  border-color: var(--border-focus);
+  box-shadow: 0 0 0 3px rgb(29 78 216 / 0.12);
+}
+.field:disabled {
+  background: var(--surface-sunken);
+  color: var(--text-muted);
+}
+
+.field-label {
+  display: block;
+  font-size: 0.8125rem;
+  font-weight: 500;
+  color: var(--text-secondary);
+  margin-bottom: 0.375rem;
+}
+
+/* Status chips: colour is tied to meaning, never decoration. */
+.chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  border-radius: 999px;
+  border: 1px solid transparent;
+  padding: 0.0625rem 0.5rem;
+  font-size: 0.75rem;
+  font-weight: 500;
+  line-height: 1.25rem;
+  white-space: nowrap;
+}
+
+.chip-neutral {
+  background: var(--surface-sunken);
+  border-color: var(--border);
+  color: var(--text-secondary);
+}
+.chip-info {
+  background: var(--info-subtle);
+  border-color: var(--info-border);
+  color: var(--info);
+}
+.chip-success {
+  background: var(--success-subtle);
+  border-color: var(--success-border);
+  color: var(--success);
+}
+.chip-warning {
+  background: var(--warning-subtle);
+  border-color: var(--warning-border);
+  color: var(--warning);
+}
+.chip-critical {
+  background: var(--critical-subtle);
+  border-color: var(--critical-border);
+  color: var(--critical);
+}
+
+/* Banners for consent, safety checks and system notices. */
+.banner {
+  display: flex;
+  gap: 0.625rem;
+  border-radius: var(--radius);
+  border: 1px solid;
+  padding: 0.75rem 0.875rem;
+  font-size: 0.8125rem;
+}
+
+.banner-info {
+  background: var(--info-subtle);
+  border-color: var(--info-border);
+  color: #0b3f7d;
+}
+.banner-warning {
+  background: var(--warning-subtle);
+  border-color: var(--warning-border);
+  color: #7a2e0e;
+}
+.banner-critical {
+  background: var(--critical-subtle);
+  border-color: var(--critical-border);
+  color: #7f1d1d;
+}
+.banner-success {
+  background: var(--success-subtle);
+  border-color: var(--success-border);
+  color: #065f3a;
+}
+
+/* Data tables: hairline rows, right-aligned numerics. */
+.data-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.8125rem;
+}
+.data-table th {
+  text-align: left;
+  font-size: 0.6875rem;
+  font-weight: 600;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+  padding: 0.5rem 0.75rem;
+  border-bottom: 1px solid var(--border);
+  background: var(--surface-sunken);
+  white-space: nowrap;
+}
+.data-table td {
+  padding: 0.625rem 0.75rem;
+  border-bottom: 1px solid var(--border);
+  vertical-align: middle;
+}
+.data-table tbody tr:last-child td {
+  border-bottom: none;
+}
+.data-table tbody tr:hover td {
+  background: var(--surface-sunken);
+}
+.data-table .num {
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+
+/* Definition rows for clinical key/value detail. */
+.kv {
+  display: grid;
+  grid-template-columns: minmax(7rem, 34%) 1fr;
+  gap: 0.5rem 1rem;
+  font-size: 0.875rem;
+}
+.kv dt {
+  color: var(--text-muted);
+}
+.kv dd {
+  color: var(--text);
+  font-weight: 500;
+}
+
+/* Prose blocks: clinical narrative content. */
+.prose-clin {
+  font-size: 0.875rem;
+  line-height: 1.65;
+  color: var(--text-secondary);
+}
+.prose-clin strong {
+  color: var(--text);
+  font-weight: 600;
+}
+
+/* ------------------------------------------------------------------ Motion
+   Restrained, purposeful. Page-level fades were previously applied to
+   every route, which made navigation feel like a slideshow.
+   ------------------------------------------------------------------ */
+@keyframes fade-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes rise-in {
+  from { opacity: 0; transform: translateY(4px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes pulse-ring {
+  0% { box-shadow: 0 0 0 0 rgb(180 35 24 / 0.45); }
+  70% { box-shadow: 0 0 0 12px rgb(180 35 24 / 0); }
+  100% { box-shadow: 0 0 0 0 rgb(180 35 24 / 0); }
+}
+
+@keyframes marquee-scroll {
+  from { transform: translateY(0); }
+  to { transform: translateY(-50%); }
+}
+
+.mic-recording {
+  animation: pulse-ring 1.5s infinite;
+}
+
+.animate-fadeIn {
+  animation: fade-in 180ms ease-out;
+}
+
+.fade-up {
+  animation: rise-in 220ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.ticker-track {
+  animation: marquee-scroll 22s linear infinite;
+}
+
+/* ------------------------------------------------------------------ Scrollbar */
+::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: #c8cdd4;
+  border-radius: 6px;
+  border: 2px solid transparent;
+  background-clip: content-box;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #a9b0ba;
+  background-clip: content-box;
+}
+
+/* ------------------------------------------------------------------ Print */
+@page {
+  margin: 10mm;
+}
+@media print {
+  body * {
+    visibility: hidden;
+  }
+  #medikiosk-receipt,
+  #medikiosk-receipt * {
+    visibility: visible;
+  }
+  #medikiosk-receipt {
+    position: static;
+    max-width: 100%;
+    box-shadow: none !important;
+    border: none !important;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+  /* Physician after-visit handout + prescription */
+  #print-area,
+  #print-area *,
+  #print-handout,
+  #print-handout * {
+    visibility: visible;
+  }
+  #print-area,
+  #print-handout {
+    position: static;
+    white-space: pre-wrap;
+    font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+    font-size: 12px;
+    padding: 24px;
+    background: white;
+    color: #12161c;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+  .no-print {
+    display: none !important;
+  }
+}
+
+/* ---------------------------------------------------------------- Accessibility (Point 16) */
+html.a11y-large-text {
+  font-size: 118%;
+}
+html.a11y-large-text body {
+  font-size: 1.05rem;
+}
+
+/* High-contrast mode via variable overrides — never `filter` on <html>, which
+   creates a containing block and silently breaks every position:fixed overlay
+   (idle watchdog, modals, floating buttons). */
+html.a11y-high-contrast {
+  --surface: #ffffff;
+  --surface-sunken: #ffffff;
+  --canvas: #ffffff;
+  --border: #000000;
+  --border-strong: #000000;
+  --text: #000000;
+  --text-secondary: #000000;
+  --text-muted: #1a1a1a;
+  --brand: #0033aa;
+  --brand-hover: #002288;
+}
+html.a11y-high-contrast body {
+  background: #ffffff;
+  color: #000000;
+}
+html.a11y-high-contrast .panel,
+html.a11y-high-contrast .panel-flush,
+html.a11y-high-contrast .field {
+  border: 2px solid #000000;
+}
+html.a11y-high-contrast a { text-decoration: underline; }
+html.a11y-high-contrast .text-ink-3, html.a11y-high-contrast .text-ink-2 {
+  color: #000000 !important;
+}
+html.a11y-high-contrast ::selection {
+  background: #022c22;
+  color: #fff;
+}
+
+html.a11y-reduced-motion *,
+html.a11y-reduced-motion *::before,
+html.a11y-reduced-motion *::after {
+  animation-duration: 0.001ms !important;
+  animation-iteration-count: 1 !important;
+  transition-duration: 0.001ms !important;
+}
+
+/* Respect OS-level reduced-motion preference by default */
+@media (prefers-reduced-motion: reduce) {
+  .animate-fadeIn,
+  .fade-up,
+  .ticker-track,
+  .mic-recording,
+  .attract-pulse,
+  .spinner {
+    animation: none;
+  }
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+  }
+}
+
+/* ------------------------------------------------------------------
+   Govt kiosk ergonomics + official identity (GIGW 3.0 / WCAG 2.2 AA)
+   ------------------------------------------------------------------ */
+
+/* Tricolor official accent bar (saffron-white-green) */
+.govt-tricolor {
+  height: 4px;
+  background: linear-gradient(to right, var(--saffron) 0 33.3%, #ffffff 33.3% 66.6%, var(--india-green) 66.6% 100%);
+  border-bottom: 1px solid var(--border);
+}
+
+/* All kiosk touch targets: minimum 48px, preferred 56px */
+.kiosk-touch, .kiosk-touch .btn, button.kiosk-touch {
+  min-height: 56px;
+  min-width: 56px;
+}
+.kiosk-btn-lg {
+  min-height: 64px;
+  font-size: 1.125rem;
+  font-weight: 700;
+  border-radius: 14px;
+}
+
+/* Sticky bottom action bar for wheelchair + short users (items in middle-lower viewport) */
+.kiosk-actionbar {
+  position: sticky;
+  bottom: 0;
+  z-index: 20;
+  background: rgb(255 255 255 / 0.96);
+  backdrop-filter: blur(8px);
+  border-top: 2px solid var(--border-strong);
+  padding: 12px 16px calc(12px + env(safe-area-inset-bottom));
+}
+
+/* Hindi / Devanagari readability */
+[lang="hi"], .devanagari {
+  line-height: 1.7;
+  letter-spacing: 0;
+}
+
+/* Base body minimum 16px for sunlight readability in OPD halls */
+body {
+  font-size: 16px;
+}
+
+/* Huge token numerals for token slip + done screen (readable from 3m) */
+.token-huge {
+  font-size: clamp(3.5rem, 10vw, 5rem);
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  font-variant-numeric: tabular-nums;
+  line-height: 1;
+}
+
+/* Priority / triage as per govt norm P1/P2/P3 */
+.triage-p1 { background: #fef3f2; border: 2px solid #b42318; color: #7f1d1d; }
+.triage-p2 { background: #fffaeb; border: 2px solid #b54708; color: #7a2e0e; }
+.triage-p3 { background: #ecfdf3; border: 2px solid #067647; color: #065f3a; }
+
+/* TV / waiting-room high-contrast mode (10-foot UI) */
+.tv-contrast {
+  background: #000000 !important;
+  color: #ffffff !important;
+}
+.tv-contrast .tv-token {
+  font-size: clamp(4rem, 14vw, 9rem);
+  font-weight: 800;
+  color: #ffe500;
+  background: #000;
+  line-height: 1;
+}
+.tv-contrast .panel, .tv-contrast .panel-header {
+  background: #000 !important;
+  color: #fff !important;
+  border-color: #fff !important;
+}
+
+/* Idle attract loop */
+@keyframes attract-pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.75; }
+}
+.attract-pulse { animation: attract-pulse 2.4s ease-in-out infinite; }
+
+/* Official receipt header for print */
+.govt-receipt-head {
+  border: 2px solid #000;
+  padding: 10px 12px;
+  text-align: center;
+}
+.govt-receipt-head .dept { font-size: 11px; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; }
+.govt-receipt-head .hosp { font-size: 16px; font-weight: 800; }
+.govt-receipt-head .free { font-size: 12px; font-weight: 700; color: var(--india-green); }

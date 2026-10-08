@@ -1,0 +1,69 @@
+name: E2E — build, unit tests + runtime smokes
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  e2e:
+    runs-on: ubuntu-latest
+    env:
+      # Fresh data dir per run so the limiter/lockout probes never collide
+      # with previously accumulated state.
+      MEDIKIOSK_DATA_DIR: ${{ runner.temp }}/medikiosk-ci-data
+      SESSION_SECRET: ci-session-secret-change-me
+      CI: "true"
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Install
+        run: npm ci
+
+      - name: Typecheck
+        run: npm run typecheck
+
+      - name: Lint
+        run: npm run lint
+
+      - name: Unit tests
+        run: npm test
+
+      - name: Build
+        run: npm run build
+
+      - name: Start server (standalone)
+        run: |
+          npx next start -p 3100 &
+          # wait for health
+          for i in $(seq 1 45); do
+            if curl -fsS http://localhost:3100/api/health > /dev/null 2>&1; then
+              echo "server up after ${i}s"; break
+            fi
+            sleep 1
+          done
+
+      - name: Runtime smokes
+        env:
+          BASE: http://localhost:3100
+        # The login limiter is 10/min per IP. Smoke1–3 do 7 login POSTs in
+        # total (fine), then we wait 70s so the lockout probe's 6 attempts land
+        # in a fresh window and can't be masked by earlier logins.
+        run: |
+          node scripts/medikiosk-smoke.mjs
+          node scripts/medikiosk-smoke2.mjs
+          node scripts/medikiosk-smoke3.mjs
+          node scripts/medikiosk-smoke4.mjs
+          node scripts/medikiosk-smoke5.mjs
+          node scripts/medikiosk-smoke6.mjs
+          sleep 70
+          node scripts/medikiosk-lockout.mjs
+
+      - name: Stop server
+        if: always()
+        run: kill %1 || true

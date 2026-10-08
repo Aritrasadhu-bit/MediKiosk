@@ -1,0 +1,5 @@
+# OS / editor junk at the workspace root (the app lives in ./medikiosk,
+# which carries its own .gitignore for node_modules, .next, data, .env, etc.)
+.freebuff/
+desktop.ini
+Thumbs.db

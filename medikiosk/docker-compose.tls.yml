@@ -1,0 +1,46 @@
+# MediKiosk — TLS termination sidecar (opt-in).
+#
+#   DOMAIN=kiosk.hospital.example docker compose -f docker-compose.yml -f docker-compose.tls.yml up -d --build
+#
+# Adds Caddy in front of the app: automatic HTTPS certificates (ports 80+443
+# must be reachable), X-Forwarded-* sanitized by the proxy, and hardened
+# cookies flipped on (they REQUIRE https — browsers drop Secure cookies over
+# plain http, which is why they stay off in the base file).
+#
+# LAN-only deployments (IP address, no domain): do NOT use this file. TLS
+# certificates cannot be issued for bare IPs — stay on the base compose file
+# over the trusted LAN and put the kiosk on an isolated VLAN instead.
+
+services:
+  medikiosk:
+    environment:
+      # Trust X-Forwarded-For/Host/Proto — and ONLY because Caddy (below) is
+      # the single entry point that sets/sanitizes them. Never enable on a
+      # directly reachable host: clients could spoof their IP and origin.
+      MEDIKIOSK_TRUST_PROXY: "1"
+      # Secure cookies: only valid over HTTPS, which this overlay guarantees.
+      MEDIKIOSK_SECURE_COOKIE: "1"
+      MEDIKIOSK_HOST_COOKIE_PREFIX: "1"
+    expose:
+      - "3000"
+    ports: []
+
+  caddy:
+    image: caddy:2-alpine
+    container_name: medikiosk-tls
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - medikiosk-caddy:/data
+      - medikiosk-caddy-config:/config
+    depends_on:
+      - medikiosk
+
+volumes:
+  medikiosk-caddy:
+    name: medikiosk-caddy
+  medikiosk-caddy-config:
+    name: medikiosk-caddy-config

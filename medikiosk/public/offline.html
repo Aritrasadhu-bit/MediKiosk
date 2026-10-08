@@ -1,0 +1,84 @@
+<!doctype html>
+<html lang="hi">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>MediKiosk — Offline · ऑफ़लाइन</title>
+    <meta name="theme-color" content="#ffffff" />
+    <style>
+      * { box-sizing: border-box; margin: 0; padding: 0; }
+      body {
+        min-height: 100vh;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: #eef1f6;
+        font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Noto Sans Devanagari", sans-serif;
+        color: #12161c;
+        padding: 24px;
+      }
+      .card {
+        max-width: 420px;
+        width: 100%;
+        background: #fff;
+        border: 2px solid #12161c;
+        border-radius: 24px;
+        padding: 40px 32px;
+        text-align: center;
+        box-shadow: 0 10px 30px rgba(2, 6, 23, 0.08);
+      }
+      .logo {
+        width: 72px; height: 72px;
+        margin: 0 auto 20px;
+        border-radius: 20px;
+        background: #1d4ed8;
+        color: #fff;
+        display: flex; align-items: center; justify-content: center;
+      }
+      h1 { font-size: 20px; font-weight: 700; }
+      p { margin-top: 10px; font-size: 14px; color: #3f4753; line-height: 1.6; }
+      .retry {
+        margin-top: 24px;
+        display: inline-block;
+        min-height: 48px;
+        background: #1d4ed8;
+        color: #fff;
+        font-weight: 700;
+        font-size: 15px;
+        border: 0;
+        border-radius: 12px;
+        padding: 12px 24px;
+        cursor: pointer;
+      }
+      .back {
+        display: inline-block;
+        margin-top: 12px;
+        min-height: 48px;
+        line-height: 48px;
+        padding: 0 24px;
+        border-radius: 12px;
+        border: 2px solid #12161c;
+        color: #12161c;
+        font-weight: 700;
+        font-size: 15px;
+        text-decoration: none;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="card">
+      <div class="logo" aria-hidden="true">
+        <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M3 21h18"/><path d="M5 21V6a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v15"/><path d="M10 4v3M14 4v3"/><path d="M9 12h6M12 9v6"/></svg>
+      </div>
+      <h1>इंटरनेट नहीं है · You&apos;re offline</h1>
+      <p>
+        आपकी जानकारी इस कियोस्क में सुरक्षित है — कुछ भी नहीं खोया।
+        Your entries are saved on this kiosk and will sync automatically.
+      </p>
+      <div>
+        <button class="retry" onclick="location.reload()">Retry connection · पुनः कोशिश करें</button><br />
+        <a class="back" href="/">Back to start · शुरू पर वापस</a>
+      </div>
+    </div>
+  </body>
+</html>

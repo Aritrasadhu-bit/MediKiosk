@@ -1,0 +1,76 @@
+# MediKiosk — one-command production deployment (Batch A, P1).
+#
+#   docker compose up -d --build
+#
+# Runs the Next.js standalone build as a single service with a persistent
+# data volume, an automatic healthcheck, and PHI encryption + host-cookie
+# hardening enabled. Set SESSION_SECRET (and SMS provider vars, if used)
+# via a .env file in this directory or the shell environment.
+#
+# Data survives restarts and image rebuilds in the `medikiosk-data` volume:
+# encounters (JSON or SQLite), users, appointments, queue state, uploads,
+# backups and site settings all live under /app/data.
+
+services:
+  medikiosk:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      # Baked into public/build-info.json and surfaced on /api/health + the
+      # admin deployment card, so operators can see which image is serving.
+      # Defaults stamp local builds as dev + unknown time.
+      args:
+        BUILD_ID: "${BUILD_ID:-dev}"
+        BUILD_TIME: "${BUILD_TIME:-unknown}"
+    image: medikiosk:latest
+    container_name: medikiosk
+    restart: unless-stopped
+    ports:
+      - "3000:3000"
+    environment:
+      NODE_ENV: production
+      PORT: "3000"
+      HOSTNAME: "0.0.0.0"
+      NEXT_TELEMETRY_DISABLED: "1"
+      # PHI at rest is encrypted (AES-256-GCM) inside the JSON store.
+      MEDIKIOSK_ENCRYPT_PHI: "1"
+      # NOTE: __Host- cookie prefix is NOT enabled here on purpose — it requires
+      # the Secure attribute (HTTPS), and this compose service serves plain http
+      # by default, which would make browsers drop the session cookie and break
+      # login. Enable it ONLY when serving behind TLS:
+      #   MEDIKIOSK_HOST_COOKIE_PREFIX: "1"
+      # REQUIRED, and there is deliberately no fallback value: generate one
+      # with `openssl rand -hex 32` and put it in a .env file next to this
+      # compose file (or export it in the shell). An unset or still-template
+      # value makes the server refuse to start rather than sign sessions with a
+      # publicly known key.
+      SESSION_SECRET: "${SESSION_SECRET:?SESSION_SECRET is required - generate one with: openssl rand -hex 32}"
+      # Optional: switch the store to the built-in SQLite engine (Batch D R1).
+      # MEDIKIOSK_DB: "sqlite"
+      # Optional: hospital information system / EMR push. Both are off by
+      # default; the UI reports "not configured" rather than implying delivery.
+      # MEDIKIOSK_HIS_MODE: "fhir"
+      # MEDIKIOSK_HIS_FHIR_URL: "${MEDIKIOSK_HIS_FHIR_URL:-}"
+      # MEDIKIOSK_HIS_MODE: "hl7v2"
+      # MEDIKIOSK_HIS_HL7_HOST: "${MEDIKIOSK_HIS_HL7_HOST:-}"
+      # MEDIKIOSK_HIS_HL7_PORT: "${MEDIKIOSK_HIS_HL7_PORT:-2575}"
+      # Optional: SMS provider for patient notifications.
+      # SMS_PROVIDER_URL: "${SMS_PROVIDER_URL:-}"
+      # SMS_PROVIDER_KEY: "${SMS_PROVIDER_KEY:-}"
+      # AI scribe fallbacks are rule-based when no key is present; add one to
+      # enable the LLM-powered summary/differentials.
+      # OPENAI_API_KEY: "${OPENAI_API_KEY:-}"
+    volumes:
+      - medikiosk-data:/app/data
+    healthcheck:
+      test: ["CMD", "node", "-e", "fetch('http://localhost:3000/api/health').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 15s
+    # The standalone server binds all interfaces; listener lock-free.
+    init: true
+
+volumes:
+  medikiosk-data:
+    name: medikiosk-data

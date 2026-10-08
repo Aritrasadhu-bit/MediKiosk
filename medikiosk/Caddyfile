@@ -1,0 +1,18 @@
+# MediKiosk TLS entry point (used with docker-compose.tls.yml).
+# DOMAIN is required: `DOMAIN=kiosk.hospital.example docker compose ...`
+# Caddy provisions/renews the certificate automatically. Only HTTPS is served —
+# there is no plain-http fallback, so Secure cookies are always valid here.
+
+{$DOMAIN} {
+	# HSTS is also sent by the app; belt and suspenders at the edge.
+	header Strict-Transport-Security "max-age=15552000; includeSubDomains"
+
+	reverse_proxy medikiosk:3000 {
+		# Pass the original scheme/host through so the app's CSRF same-origin
+		# check and rate-limit client-IP buckets see the real browser values.
+		# (Honored app-side only with MEDIKIOSK_TRUST_PROXY=1, set in the TLS
+		# overlay — Caddy overwrites any client-supplied X-Forwarded-* here.)
+		header_up X-Forwarded-Proto {scheme}
+		header_up X-Forwarded-Host {host}
+	}
+}

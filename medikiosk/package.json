@@ -1,0 +1,36 @@
+{
+  "name": "medikiosk",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "lint": "eslint",
+    "test": "vitest run",
+    "test:e2e": "node scripts/kiosk-loop-e2e.mjs",
+    "typecheck": "tsc --noEmit",
+    "migrate:json-sqlite": "node scripts/medikiosk-migrate-json-sqlite.mjs",
+    "smoke": "node scripts/medikiosk-smoke.mjs && node scripts/medikiosk-smoke2.mjs && node scripts/medikiosk-smoke3.mjs && node scripts/medikiosk-smoke4.mjs && node scripts/medikiosk-smoke5.mjs && node scripts/medikiosk-smoke6.mjs && node -e \"setTimeout(()=>process.exit(0),70000)\" && node scripts/medikiosk-lockout.mjs"
+  },
+  "dependencies": {
+    "next": "16.3.4",
+    "pdfjs-dist": "^6.3.289",
+    "qrcode.react": "^4.2.0",
+    "react": "19.2.8",
+    "react-dom": "19.2.8",
+    "tesseract.js": "^7.0.0",
+    "zod": "^4.6.5"
+  },
+  "devDependencies": {
+    "@tailwindcss/postcss": "^4",
+    "@types/node": "^24.13.6",
+    "@types/react": "^19",
+    "@types/react-dom": "^19",
+    "eslint": "^9",
+    "eslint-config-next": "16.3.4",
+    "tailwindcss": "^4",
+    "typescript": "^5",
+    "vitest": "^5.0.1"
+  }
+}
